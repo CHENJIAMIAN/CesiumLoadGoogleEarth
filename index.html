@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- The Cesium library. -->
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.72/Build/Cesium/Cesium.js"></script>
+    <link
+      href="https://cesium.com/downloads/cesiumjs/releases/1.72/Build/Cesium/Widgets/widgets.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="cesiumContainer" class="fullSize"></div>
+    <script id="cesium_sandcastle_script">
+      async function fuckCookie() {
+        const res_google_map_post_auth_body = await fetch(
+          "http://localhost:8081/google_map_post_auth_body"
+        );
+        const google_map_post_auth_body_blob = await res_google_map_post_auth_body.blob();
+
+        const res_body = await fetch("/googlemapAuth", {
+          body: google_map_post_auth_body_blob,
+          headers: {},
+          method: "POST",
+        });
+        const arrayBuffer = (window._arrayBuffer = await res_body
+          .clone()
+          .arrayBuffer());
+        let str_arrayBuffer = "";
+        // console.log("长度", arrayBuffer.byteLength);
+        switch (arrayBuffer.byteLength) {
+          case 112:
+            str_arrayBuffer = String.fromCharCode.apply(
+              null,
+              new Uint8Array(arrayBuffer.slice(8, 88)) //截取长度是未经验证的
+            );
+            break;
+          case 124:
+            str_arrayBuffer = String.fromCharCode.apply(
+              null,
+              new Uint8Array(arrayBuffer.slice(8, 100))
+            );
+            break;
+          case 136:
+            str_arrayBuffer = String.fromCharCode.apply(
+              null,
+              new Uint8Array(arrayBuffer.slice(8, 112))
+            );
+            break;
+          case 144:
+            str_arrayBuffer = String.fromCharCode.apply(
+              null,
+              new Uint8Array(arrayBuffer.slice(8, 120))
+            );
+            break;
+          default:
+            debugger;
+        }
+        // console.log(
+        //   "完整字符串",
+        //   String.fromCharCode.apply(null, new Uint8Array(arrayBuffer))
+        // );
+        // console.log("截出来的cookie", str_arrayBuffer);
+        document.cookie = `SessionId="${str_arrayBuffer}"; path=/;`;
+        // console.log("document.cookie ", document.cookie);
+      }
+      fuckCookie();
+      setInterval(fuckCookie, 1000 * 60 * 10);
+
+      function startup(Cesium) {
+        "use strict";
+        var geeMetadata = new Cesium.GoogleEarthEnterpriseMetadata(
+          new Cesium.Resource({
+            url: "/googlemap",
+          })
+        );
+
+        var viewer = new Cesium.Viewer("cesiumContainer", {
+          imageryProvider: new Cesium.GoogleEarthEnterpriseImageryProvider({
+            metadata: geeMetadata,
+          }),
+          terrainProvider: new Cesium.GoogleEarthEnterpriseTerrainProvider({
+            metadata: geeMetadata,
+          }),
+          baseLayerPicker: false,
+        });
+      }
+      if (typeof Cesium !== "undefined") {
+        window.startupCalled = true;
+        startup(Cesium);
+      }
+    </script>
+  </body>
+</html>
