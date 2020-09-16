@@ -1,2 +1,3 @@
 - 将index.html托管到8080端口下
+- 将google_map_post_auth_body文件放在8081下
 - 开启NGINX,访问8089即可
